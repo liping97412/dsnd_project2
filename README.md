@@ -25,6 +25,6 @@ Explanation of the files in the repository
  
  An example of the web app
  
- ![Visualization1](/dsnd_project2/image/pic1.PNG)
- ![Visualization2](/dsnd_project2/image/pic2.PNG)
- ![Visualization3](/dsnd_project2/image/pic3.PNG)
+ ![Visualization1](/image/pic1.PNG)
+ ![Visualization2](/image/pic2.PNG)
+ ![Visualization3](/image/pic3.PNG)
