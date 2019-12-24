@@ -6,6 +6,8 @@ from sqlalchemy import create_engine
 import re
 import numpy as np
 import pandas as pd
+import nltk
+from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from nltk.stem import WordNetLemmatizer
 
@@ -21,6 +23,9 @@ from sklearn.externals import joblib
 
 
 def load_data(database_filepath):
+    """
+    load the data from database and assign the value of X and Y
+    """
     engine = create_engine('sqlite:///data/DisasterResponse.db')
     df = pd.read_sql_table(database_filepath, engine)
     X = df['message']
@@ -37,7 +42,18 @@ def load_data(database_filepath):
 
 
 def tokenize(text):
+    """
+    tokenize the text by removing stopwords,removing short words and lemmetization  
+    """
+    
     tokens = word_tokenize(text)
+    
+    STOPWORDS = list(set(stopwords.words('english')))
+    # remove short words
+    tokens = [token for token in tokens if len(token) > 2]
+    # remove stopwords
+    tokens = [token for token in tokens if token not in STOPWORDS]
+    
     lemmatizer = WordNetLemmatizer()
 
     clean_tokens = []
@@ -49,12 +65,15 @@ def tokenize(text):
 
 
 def build_model():
+    """
+    build pipeline and grid search for machine learning model
+    """
     pipeline =  Pipeline([
         ('vect', CountVectorizer(tokenizer=tokenize)),
         ('tfidf', TfidfTransformer()),
         ('clf', MultiOutputClassifier(RandomForestClassifier()))
     ])
-    
+    ### since the training takes too long, so we should use less combinations of pyrameter for grid search
     parameters = {
         'vect__max_df': (0.5,1.0),
         'clf__estimator__n_estimators': [50, 80, 100],
@@ -67,16 +86,20 @@ def build_model():
 
 
 def evaluate_model(model, X_test, Y_test, category_names):
+    """
+    evaluate the performance of classification model
+    """
     y_pred = model.predict(X_test)
-    for i in len(category_names):
+    for i in range(len(category_names)):
         print("Labels:", category_names[i])
-        report = classification_report(y_test.iloc[:,i],y_pred[:,i])
+        report = classification_report(Y_test.iloc[:,i],y_pred[:,i])
         print("Classification_Report:\n", report)
    
-    print("\nBest Parameters:", cv.best_params_)
-
 
 def save_model(model, model_filepath):
+    """
+    save model to a pickle file
+    """
     joblib.dump(model, model_filepath, compress = 1)
     pass
 

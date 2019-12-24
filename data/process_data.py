@@ -4,6 +4,9 @@ from sqlalchemy import create_engine
 
 
 def load_data(messages_filepath, categories_filepath):
+    """
+    load data from csv and combine two dataframe
+    """
     messages = pd.read_csv(messages_filepath)
     categories = pd.read_csv(categories_filepath)
     df = messages.merge(categories,how='inner',on=['id'])
@@ -11,6 +14,10 @@ def load_data(messages_filepath, categories_filepath):
 
 
 def clean_data(df):
+    """
+    clean the category column as seperate columns for classification
+    and drop duplicates
+    """
     categories = df['categories'].str.split(";",expand=True)
     row = categories.iloc[0]
     category_colnames = row.apply(lambda x: x[:-2])
@@ -31,6 +38,9 @@ def clean_data(df):
 
 
 def save_data(df, database_filepath):
+    """
+    save cleaned dataframe to a datebase
+    """
     engine = create_engine('sqlite:///data/DisasterResponse.db')
     df.to_sql(database_filepath, engine, index=False)
     pass  
