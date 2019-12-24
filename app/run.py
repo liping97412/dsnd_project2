@@ -2,8 +2,12 @@ import json
 import plotly
 import pandas as pd
 
-from nltk.stem import WordNetLemmatizer
+import nltk
+nltk.download('stopwords')
+from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
+from nltk.stem import WordNetLemmatizer
+from nltk.probability import FreqDist
 
 from flask import Flask
 from flask import render_template, request, jsonify
@@ -15,7 +19,18 @@ from sqlalchemy import create_engine
 app = Flask(__name__)
 
 def tokenize(text):
+    """
+    tokenize the text by removing stopwords,removing short words and lemmetization  
+    """
+    
     tokens = word_tokenize(text)
+    
+    STOPWORDS = list(set(stopwords.words('english')))
+    # remove short words
+    tokens = [token for token in tokens if len(token) > 2]
+    # remove stopwords
+    tokens = [token for token in tokens if token not in STOPWORDS]
+    
     lemmatizer = WordNetLemmatizer()
 
     clean_tokens = []
@@ -41,9 +56,25 @@ def index():
     
     # extract data needed for visuals
     # TODO: Below is an example - modify to extract data for your own visuals
+    # for graph one
     genre_counts = df.groupby('genre').count()['message']
     genre_names = list(genre_counts.index)
     
+    ### for graph two
+    df2 = df.iloc[:,-36:]
+    category_counts = list(df2.sum(axis = 0, skipna = True))
+    category_names = list(df2.columns)
+    
+    ### for graph three
+    top_N = 20
+    #if not necessary all lower
+    a = df['message'].str.lower().str.cat(sep=' ')
+    words = tokenize(a)
+    word_dist = nltk.FreqDist(words)
+    rslt = pd.DataFrame(word_dist.most_common(top_N),
+                    columns=['Word', 'Frequency'])
+    word = list(rslt['Word'])
+    word_count = list(rslt['Frequency'])
     # create visuals
     # TODO: Below is an example - modify to create your own visuals
     graphs = [
@@ -62,6 +93,44 @@ def index():
                 },
                 'xaxis': {
                     'title': "Genre"
+                }
+            }
+        },
+        
+        {
+            'data': [
+                Bar(
+                    x=category_names,
+                    y=category_counts
+                )
+            ],
+
+            'layout': {
+                'title': 'Distribution of Target variable',
+                'yaxis': {
+                    'title': "Count"
+                },
+                'xaxis': {
+                    'title': "Category"
+                }
+            }
+        },
+        
+        {
+            'data': [
+                Bar(
+                    x=word,
+                    y=word_count
+                )
+            ],
+
+            'layout': {
+                'title': 'Top 20 most frequently used words',
+                'yaxis': {
+                    'title': "Frequency"
+                },
+                'xaxis': {
+                    'title': "Word"
                 }
             }
         }
