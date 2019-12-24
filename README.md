@@ -22,4 +22,9 @@ Explanation of the files in the repository
 |- classifier.pkl  # saved model 
 
 - README.md
-
+ 
+ An example of the web app
+ 
+ ![Visualization1](/image/pic1.png)
+ ![Visualization2](/image/pic2.png)
+ ![Visualization3](/image/pic3.png)
